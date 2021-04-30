@@ -2,7 +2,6 @@
 #include "Adafruit_LEDBackpack.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <ezButton.h>
 #include <stdint.h>
 #include <WiFi.h>
 #include <WiFiMulti.h>

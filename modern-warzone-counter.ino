@@ -9,6 +9,7 @@
 #include <WiFiClient.h>
 #include <Wire.h>
 #include <HTTPClient.h>
+#include "ascii.h"
 #include "credentials.h"
 
 #define SERIAL_BAUDRATE 115200
@@ -19,6 +20,7 @@ int warzone_wins = 0;
 unsigned long lastMillis;
 
 WiFiMulti WiFiMulti;
+Adafruit_7segment matrix;
 
 void setup() {
   Serial.begin(115200);
@@ -26,6 +28,14 @@ void setup() {
   Serial.println();
   Serial.println();
   Serial.println();
+
+  //For some reason this can't be called in the constructor, so I created this begin function
+  matrix = Adafruit_7segment();
+  matrix.begin(0x70);
+  //  //  matrix.drawColon(true);
+  matrix.setBrightness(5);
+
+  printName(WARZONE_USERNAME);
 
   WiFi.mode(WIFI_STA);
   WiFiMulti.addAP(WIFI_SSID, WIFI_PASS);
@@ -141,5 +151,43 @@ void loop() {
 }
 
 void updateDisplay(){
-  //TODO set display digits to warzone_wins
+  matrix.writeDigitNum(0, (warzone_wins / 1000));
+  matrix.writeDigitNum(1, (warzone_wins / 100) % 10);
+  matrix.drawColon(false);
+  matrix.writeDigitNum(3, (warzone_wins / 10) % 10);
+  matrix.writeDigitNum(4, warzone_wins % 10);
+  matrix.writeDisplay();
+  delay(1000);
+}
+
+void printName(String name){
+  for(int i = 0; i <= name.length() + 3; i++){
+    if(i > 14){
+      matrix.writeDigitRaw(4, 0b00000000);
+    }else{
+      matrix.writeDigitRaw(4,  get_ascii(name.charAt(i) - ' '));
+    }
+
+    if(i-1 >= 0 && i-1 < name.length()){
+      matrix.writeDigitRaw(3,  get_ascii(name.charAt(i-1) - ' '));
+    }else{
+      matrix.writeDigitRaw(3, 0b00000000);
+    }
+
+    if(i-2 >= 0 && i-2 < name.length()){
+      matrix.writeDigitRaw(1,  get_ascii(name.charAt(i-2) - ' '));
+    }else{
+      matrix.writeDigitRaw(1, 0b00000000);
+    }
+
+    if(i-3 >= 0 && i-3 < name.length()){
+      matrix.writeDigitRaw(0, get_ascii(name.charAt(i-3) - ' '));
+    }else{
+      matrix.writeDigitRaw(0, 0b00000000);
+    }
+    
+    matrix.writeDisplay();
+    delay(250);
+  }
+  delay(1000);
 }
